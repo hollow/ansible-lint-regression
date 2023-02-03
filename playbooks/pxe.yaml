@@ -1,0 +1,18 @@
+#!/usr/bin/env -S ansible-playbook
+---
+- name: Setup PXE server
+  hosts: role_pxe
+  become: true
+  tasks:
+    - name: Create kickstart files
+      ansible.builtin.template:
+        src: almalinux.kickstart.j2
+        dest: "/var/www/lighttpd/{{ item.key }}.ks"
+        mode: 0444
+      loop: "{{ pxe_mac | dict2items }}"
+      vars:
+        kickstart_fqdn: "{{ item.key }}"
+        kickstart_hostname: "{{ kickstart_fqdn.split('.')[0] }}"
+        kickstart_address: "{{ lookup('community.general.dig', item.key) }}"
+        kickstart_prefix: "{{ '22' if kickstart_address.split('.')[2] == '97' else '19' }}"
+        kickstart_gateway: "{{ (kickstart_address ~ '/' ~ kickstart_prefix) | ansible.utils.nthhost(1) }}"

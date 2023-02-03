@@ -1,0 +1,5 @@
+cp/
+galaxy_cache/
+galaxy_token
+inventory/
+tmp/
